@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>LabelKit.Parser</PackageId>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pidgin" Version="2.5.0" />
+    <PackageReference Include="Pidgin" Version="3.5.1" />
   </ItemGroup>
 
   <ItemGroup>
