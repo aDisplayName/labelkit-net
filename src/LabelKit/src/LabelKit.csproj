@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <PackageId>LabelKit</PackageId>
-    <Version>$(LabelKitVersion)</Version>
     <Description>
       Core components of LabelKit. $(LabelKitDescription)
     </Description>

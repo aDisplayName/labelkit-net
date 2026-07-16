@@ -4,6 +4,10 @@ LabelKit is a .NET toolkit for parsing [kubernetes-like label-selectors](https:/
 Labels are name/value pairs that can be represented as dictionaries (name->value) or simple string collections (name+delimiter+value).
 
 - [Packages](#packages)
+- [Building and CI](#building-and-ci)
+  - [Continuous integration](#continuous-integration)
+  - [Versioning](#versioning)
+  - [Releasing to NuGet](#releasing-to-nuget)
 - [Examples](#examples)
   - [EFCore PostgreSQL](#efcore-postgresql)
   - [Label-Selectors](#label-selectors)
@@ -29,6 +33,71 @@ The following NuGet packages are provided:
   - You need to filter EFCore-PostgreSQL queries. See [here](#expressions-efcore).
 - [LabelKit.EFCore.Pomelo.MySql](https://www.nuget.org/packages/LabelKit.EFCore.Pomelo.MySql/)
   - You need to filter EFCore-MySql queries. See [here](#expressions-efcore).
+
+## Building and CI
+
+GitHub Actions builds, tests, and packs all NuGet packages on every push and pull request to `master`. Releases are published to [nuget.org](https://www.nuget.org) via [NuGet trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) (OIDC — no long-lived API keys).
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| [CI](.github/workflows/ci.yml) | Push / PR to `master` | Vulnerability scan, build, test, pack, upload artifacts |
+| [CodeQL](.github/workflows/codeql.yml) | Push / PR to `master`, weekly | Static analysis for C# |
+| [Release](.github/workflows/release.yml) | Tag `v*.*.*` or manual dispatch | Build, test, pack, publish to nuget.org |
+
+[Dependabot](.github/dependabot.yml) opens weekly pull requests for NuGet and GitHub Actions dependency updates.
+
+### Continuous integration
+
+The CI workflow runs on `ubuntu-latest` with Docker available for Testcontainers integration tests (PostgreSQL, MySQL, SqlServer). Packaged `.nupkg` files are uploaded as workflow artifacts and can be downloaded from the Actions run summary.
+
+To build locally:
+
+```bash
+dotnet build src/LabelKit.sln -c Release
+dotnet test src/LabelKit.sln -c Release --no-build
+dotnet pack src/LabelKit.sln -c Release --no-build -o ./artifacts/packages
+```
+
+### Versioning
+
+Package versions are calculated automatically by [MinVer](https://github.com/adamralph/minver) from Git tags:
+
+- Tag `v1.2.3` → NuGet version `1.2.3`
+- Commits after a tag → pre-release versions such as `1.2.4-preview.5`
+
+Tag with a `v` prefix; published packages use plain semver without the prefix.
+
+### Releasing to NuGet
+
+**Tag push (primary release path):**
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+**Manual release:** Actions → **Release** → **Run workflow** → select a branch or tag ref → toggle **Use GitHub release environment**.
+
+#### Repository variable
+
+For tag pushes, set **`USE_RELEASE_ENVIRONMENT`** under **Settings → Secrets and variables → Actions → Variables**:
+
+| Value | Behavior |
+|---|---|
+| `true` or unset | Uses GitHub environment `release` (approval gate if configured) |
+| `false` | Runs without a GitHub environment |
+
+Manual workflow runs use the **Use GitHub release environment** checkbox instead of this variable.
+
+#### One-time setup
+
+1. On [nuget.org](https://www.nuget.org): create **Trusted Publishing** policies for this repository and `release.yml` workflow (configure one with environment `release` and one without if you need both modes).
+2. In GitHub: create the **`release`** environment (optional required reviewers).
+3. Add secret **`NUGET_USER`** (nuget.org profile name, not email):
+   - **Environment secret** on `release` (when using the release environment)
+   - **Repository secret** (when not using the release environment)
+
+For full per-run flexibility, define `NUGET_USER` in both places with the same value.
 
 ## Examples
 

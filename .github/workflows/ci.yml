@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Scan for vulnerable packages
+        run: |
+          set -euo pipefail
+          dotnet list src/LabelKit.sln package --vulnerable --include-transitive > vuln.txt || true
+          cat vuln.txt
+          if grep -qiE '\|(Critical|High)\|' vuln.txt; then
+            echo "Critical or High severity vulnerabilities found."
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore src/LabelKit.sln
+
+      - name: Build
+        run: dotnet build src/LabelKit.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test src/LabelKit.sln -c Release --no-build --verbosity normal
+
+      - name: Pack
+        run: dotnet pack src/LabelKit.sln -c Release --no-build -o ./artifacts/packages
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/packages/*.nupkg

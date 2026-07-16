@@ -5,7 +5,6 @@
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>LabelKit.Parser</PackageId>
-    <Version>$(LabelKitParserVersion)</Version>
     <Description>
       Default parser of LabelKit. $(LabelKitDescription)
     </Description>
