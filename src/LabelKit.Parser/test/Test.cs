@@ -102,4 +102,59 @@ public class Test
     selector.Matches(arrayLabels2).ShouldBeFalse();
     selector.Matches(dictLabels2).ShouldBeFalse();
   }
+
+  [Fact]
+  public void LikeMatch()
+  {
+    string[] matchingArrayLabels =
+    [
+      "label1:value1",
+      "label2:other"
+    ];
+
+    var matchingDictLabels = new Dictionary<string, string>
+    {
+      ["label1"] = "value1",
+      ["label2"] = "other"
+    };
+
+    string[] nonMatchingArrayLabels =
+    [
+      "label1:nomatch",
+      "label2:excluded"
+    ];
+
+    var nonMatchingDictLabels = new Dictionary<string, string>
+    {
+      ["label1"] = "nomatch",
+      ["label2"] = "excluded"
+    };
+
+    var selector = LabelSelector.New()
+      .Match("label1").Like("^val.*", "^value1$")
+      .Match("label2").NotLike("^excl.*");
+
+    selector.Matches(matchingArrayLabels).ShouldBeTrue();
+    selector.Matches(matchingDictLabels).ShouldBeTrue();
+
+    selector.Matches(nonMatchingArrayLabels).ShouldBeFalse();
+    selector.Matches(nonMatchingDictLabels).ShouldBeFalse();
+
+    selector.ToString().ShouldBe("label1 like (^val.*, ^value1$), label2 notlike (^excl.*)");
+  }
+
+  [Fact]
+  public void LikeCollectionExpression()
+  {
+    var selector = LabelSelector.New()
+      .Match("label3").Like("^value[12]$")
+      .Match("label7").Like("^val.*");
+
+    var builder = LabelSelectorExpressionBuilders.Collection<string[]>();
+    var expression = builder.Build(selector);
+    var compiled = expression.Compile();
+
+    compiled.Invoke(["label3:value1", "label7:value"]).ShouldBeTrue();
+    compiled.Invoke(["label3:value1"]).ShouldBeFalse();
+  }
 }

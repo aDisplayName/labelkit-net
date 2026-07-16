@@ -27,4 +27,12 @@ public static class LabelSelectorExpressionBuilderExtensions
   /// <inheritdoc cref="LabelSelectorExpressionBuilder.NotIn(IEnumerable{string})"/>
   public static LabelSelector NotIn(this LabelSelectorExpressionBuilder builder, params string[] values)
     => builder.NotIn(values);
+
+  /// <inheritdoc cref="LabelSelectorExpressionBuilder.Like(IEnumerable{string})"/>
+  public static LabelSelector Like(this LabelSelectorExpressionBuilder builder, params string[] patterns)
+    => builder.Like(patterns);
+
+  /// <inheritdoc cref="LabelSelectorExpressionBuilder.NotLike(IEnumerable{string})"/>
+  public static LabelSelector NotLike(this LabelSelectorExpressionBuilder builder, params string[] patterns)
+    => builder.NotLike(patterns);
 }

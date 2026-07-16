@@ -5,6 +5,7 @@ namespace LabelKit;
 public static partial class NpgsqlLabelSelectorExpressionBuilders
 {
   internal static class Builders<TLabels>
+    where TLabels : IDictionary<string, string>
   {
     public static ILabelSelectorExpressionBuilder<TLabels> Jsonb
       => new NpgsqlJsonbLabelSelectorExpressionBuilder<TLabels>();
@@ -12,5 +13,6 @@ public static partial class NpgsqlLabelSelectorExpressionBuilders
 
   /// <inheritdoc cref="NpgsqlJsonbLabelSelectorExpressionBuilder{T}"/>
   public static ILabelSelectorExpressionBuilder<TLabels> Jsonb<TLabels>()
+    where TLabels : IDictionary<string, string>
     => Builders<TLabels>.Jsonb;
 }

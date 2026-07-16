@@ -2,6 +2,8 @@
 
 namespace LabelKit;
 
+using System.Text.RegularExpressions;
+
 public static class LabelSelectorExtensions
 {
   /// <summary>
@@ -76,6 +78,14 @@ public static class LabelSelectorExtensions
         => expression.Values.Any(v => labels.Contains(new KeyValuePair<string, string>(expression.Name, v))),
       { Operator: LabelSelectorOperator.NotIn, Values.Length: > 0 }
         => expression.Values.All(v => !labels.Contains(new KeyValuePair<string, string>(expression.Name, v))),
+      { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }
+        => labels is IDictionary<string, string> dict
+          ? dict.TryGetValue(expression.Name, out var likeValue) && expression.Values.Any(p => Regex.IsMatch(likeValue, p))
+          : labels.Where(l => l.Key == expression.Name).Select(l => l.Value).Any(value => expression.Values.Any(p => Regex.IsMatch(value, p))),
+      { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }
+        => labels is IDictionary<string, string> notLikeDict
+          ? !notLikeDict.TryGetValue(expression.Name, out var notLikeValue) || expression.Values.All(p => !Regex.IsMatch(notLikeValue, p))
+          : !labels.Any(l => l.Key == expression.Name) || labels.Where(l => l.Key == expression.Name).All(l => expression.Values.All(p => !Regex.IsMatch(l.Value, p))),
       { Operator: LabelSelectorOperator.Exists }
         => labels is IDictionary<string, string> dict ? dict.ContainsKey(expression.Name) : labels.Any(l => l.Key == expression.Name),
       { Operator: LabelSelectorOperator.NotExists }
@@ -99,6 +109,15 @@ public static class LabelSelectorExtensions
         => expression.Values.Any(v => labels.Contains($"{expression.Name}{delimiter}{v}")),
       { Operator: LabelSelectorOperator.NotIn, Values.Length: > 0 }
         => expression.Values.All(v => !labels.Contains($"{expression.Name}{delimiter}{v}")),
+      { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }
+        => labels
+          .Where(l => l.StartsWith($"{expression.Name}{delimiter}"))
+          .Select(l => l[(expression.Name.Length + delimiter.Length)..])
+          .Any(value => expression.Values.Any(p => Regex.IsMatch(value, p))),
+      { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }
+        => !labels.Any(l =>
+          l.StartsWith($"{expression.Name}{delimiter}") &&
+          expression.Values.Any(p => Regex.IsMatch(l[(expression.Name.Length + delimiter.Length)..], p))),
       { Operator: LabelSelectorOperator.Exists }
         => labels.Any(l => l.StartsWith(expression.Name)),
       { Operator: LabelSelectorOperator.NotExists }

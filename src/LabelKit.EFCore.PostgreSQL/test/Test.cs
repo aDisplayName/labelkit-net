@@ -115,6 +115,52 @@ public class Test(ITestOutputHelper output) : IAsyncLifetime
     entities.ShouldAllBe(e => e.Id == 1);
   }
 
+  [Fact]
+  public async Task LikeJsonb()
+  {
+    await using var dbContext = new TestContext(this.dataSource);
+
+    var likeSelector = LabelSelector.New()
+      .Match("label3").Like("^value[12]$")
+      .Match("label7").Like("^val.*");
+
+    var expressionBuilder = NpgsqlLabelSelectorExpressionBuilders.Jsonb<Dictionary<string, string>>();
+
+    var query = dbContext.Set<TestEntity>()
+      .AsNoTracking().MatchLabels(e => e.DictLabels, likeSelector, expressionBuilder);
+
+    output.WriteLine(query.ToQueryString());
+
+    query.ToQueryString().ShouldContain("~");
+
+    var entities = await query.ToListAsync();
+
+    entities.ShouldHaveSingleItem();
+    entities.ShouldAllBe(e => e.Id == 2);
+  }
+
+  [Fact]
+  public async Task LikeCollection()
+  {
+    await using var dbContext = new TestContext(this.dataSource);
+
+    var likeSelector = LabelSelector.New()
+      .Match("label3").Like("^value[12]$")
+      .Match("label7").Like("^val.*");
+
+    var expressionBuilder = LabelSelectorExpressionBuilders.Collection<string[]>();
+
+    var query = dbContext.Set<TestEntity>()
+      .AsNoTracking().MatchLabels(e => e.ArrayLabels, likeSelector, expressionBuilder);
+
+    output.WriteLine(query.ToQueryString());
+
+    var entities = await query.ToListAsync();
+
+    entities.ShouldHaveSingleItem();
+    entities.ShouldAllBe(e => e.Id == 2);
+  }
+
   public async Task InitializeAsync()
   {
     await this.postgres.StartAsync();
