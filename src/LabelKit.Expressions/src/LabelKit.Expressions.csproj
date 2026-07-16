@@ -5,7 +5,6 @@
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>LabelKit.Expressions</PackageId>
-    <Version>$(LabelKitExpressionsVersion)</Version>
     <Description>
       Expression components of LabelKit. $(LabelKitDescription)
     </Description>
