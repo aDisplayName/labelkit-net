@@ -4,6 +4,7 @@ namespace LabelKit;
 
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 /// </summary>
 /// <typeparam name="T">Type of labels.</typeparam>
 public class NpgsqlJsonbLabelSelectorExpressionBuilder<T> : ILabelSelectorExpressionBuilder<T>
+  where T : IDictionary<string, string>
 {
   public Expression<Func<T, bool>> Build(ILabelSelector selector)
   {
@@ -51,6 +53,18 @@ public class NpgsqlJsonbLabelSelectorExpressionBuilder<T> : ILabelSelectorExpres
         case { Operator: LabelSelectorOperator.NotIn, Values.Length: > 0 }:
           expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, value) => current.And(e => !EF.Functions.JsonContains(e!, $"{{\"{selectorExpression.Name}\":\"{value}\"}}"))));
           break;
+        case { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }:
+        {
+          var name = selectorExpression.Name;
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(false), (current, pattern) => current.Or(e => e.ContainsKey(name) && Regex.IsMatch(e[name], pattern))));
+          break;
+        }
+        case { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }:
+        {
+          var name = selectorExpression.Name;
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, pattern) => current.And(e => !e.ContainsKey(name) || !Regex.IsMatch(e[name], pattern))));
+          break;
+        }
         case { Operator: LabelSelectorOperator.Exists }:
           expression = expression.And(e => EF.Functions.JsonExists(e!, selectorExpression.Name));
           break;

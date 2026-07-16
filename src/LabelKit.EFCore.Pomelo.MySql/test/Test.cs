@@ -121,6 +121,31 @@ public class Test(ITestOutputHelper output) : IAsyncLifetime
     entities.ShouldAllBe(e => e.Id == 1);
   }
 
+  [Fact]
+  public async Task LikeJson()
+  {
+    await using var dbContext = new TestContext(this.dataSource, mysqlVersion);
+
+    var likeSelector = LabelSelector.New()
+      .Match("label3").Like("^value[12]$")
+      .Match("label7").Like("^val.*");
+
+    var expressionBuilder = MySqlLabelSelectorExpressionBuilders.Json<Dictionary<string, string>>();
+
+    var query = dbContext.Set<TestEntity>()
+      .AsNoTracking()
+      .MatchLabels(e => e.DictLabels, likeSelector, expressionBuilder);
+
+    output.WriteLine(query.ToQueryString());
+
+    query.ToQueryString().ShouldContain("REGEXP");
+
+    var entities = await query.ToListAsync();
+
+    entities.ShouldHaveSingleItem();
+    entities.ShouldAllBe(e => e.Id == 2);
+  }
+
   public async Task InitializeAsync()
   {
     await this.mysql.StartAsync();

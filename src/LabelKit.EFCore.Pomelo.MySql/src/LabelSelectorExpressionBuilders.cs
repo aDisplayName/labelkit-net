@@ -5,6 +5,7 @@ namespace LabelKit;
 public static partial class MySqlLabelSelectorExpressionBuilders
 {
   internal static class Builders<TLabels>
+    where TLabels : IDictionary<string, string>
   {
     public static ILabelSelectorExpressionBuilder<TLabels> Json
       => new MySqlJsonLabelSelectorExpressionBuilder<TLabels>();
@@ -12,5 +13,6 @@ public static partial class MySqlLabelSelectorExpressionBuilders
 
   /// <inheritdoc cref="MySqlJsonLabelSelectorExpressionBuilder{T}"/>
   public static ILabelSelectorExpressionBuilder<TLabels> Json<TLabels>()
+    where TLabels : IDictionary<string, string>
     => Builders<TLabels>.Json;
 }

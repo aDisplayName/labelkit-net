@@ -13,6 +13,14 @@ public enum LabelSelectorOperator
   /// </summary>
   NotIn,
   /// <summary>
+  /// Match label value against a set of regular expressions where any of the patterns should match.
+  /// </summary>
+  Like,
+  /// <summary>
+  /// Match label value against a set of regular expressions where none of the patterns should match.
+  /// </summary>
+  NotLike,
+  /// <summary>
   /// Match label for existence without considering the value.
   /// </summary>
   Exists,

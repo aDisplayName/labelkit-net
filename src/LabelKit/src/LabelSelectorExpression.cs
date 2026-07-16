@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2024 Moritz Rinow. All rights reserved.
+// Copyright (c) 2024 Moritz Rinow. All rights reserved.
 
 namespace LabelKit;
 
@@ -48,6 +48,12 @@ public class LabelSelectorExpression : IEquatable<LabelSelectorExpression>, IClo
         break;
       case LabelSelectorOperator.NotIn:
         str.Append($" notin ({string.Join(", ", this.Values ?? Enumerable.Empty<string>())})");
+        break;
+      case LabelSelectorOperator.Like:
+        str.Append($" like ({string.Join(", ", this.Values ?? Enumerable.Empty<string>())})");
+        break;
+      case LabelSelectorOperator.NotLike:
+        str.Append($" notlike ({string.Join(", ", this.Values ?? Enumerable.Empty<string>())})");
         break;
       case LabelSelectorOperator.NotExists:
         str.Insert(0, '!');

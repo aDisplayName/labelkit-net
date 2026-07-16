@@ -3,6 +3,7 @@
 namespace LabelKit;
 
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using LinqKit;
 
 /// <summary>
@@ -37,6 +38,22 @@ public class CollectionLabelSelectorExpressionBuilder<T>(string delimiter = ":")
         case { Operator: LabelSelectorOperator.NotIn, Values.Length: > 0 }:
           expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, value) => current.And(e => !e.Contains($"{selectorExpression.Name}:{value}"))));
           break;
+        case { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }:
+        {
+          var name = selectorExpression.Name;
+          var prefix = $"{name}{delimiter}";
+          var valueStart = name.Length + delimiter.Length;
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(false), (current, pattern) => current.Or(e => e.Any(l => l.StartsWith(prefix) && Regex.IsMatch(l.Substring(valueStart), pattern)))));
+          break;
+        }
+        case { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }:
+        {
+          var name = selectorExpression.Name;
+          var prefix = $"{name}{delimiter}";
+          var valueStart = name.Length + delimiter.Length;
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, pattern) => current.And(e => !e.Any(l => l.StartsWith(prefix) && Regex.IsMatch(l.Substring(valueStart), pattern)))));
+          break;
+        }
         case { Operator: LabelSelectorOperator.Exists }:
           expression = expression.And(e => e.Any(l => l.StartsWith(selectorExpression.Name)));
           break;

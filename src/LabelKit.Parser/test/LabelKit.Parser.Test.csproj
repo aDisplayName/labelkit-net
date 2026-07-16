@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\LabelKit.Parser.csproj" />
+    <ProjectReference Include="..\..\LabelKit.Expressions\src\LabelKit.Expressions.csproj" />
   </ItemGroup>
 
 </Project>
