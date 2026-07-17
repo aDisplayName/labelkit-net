@@ -19,7 +19,7 @@ Labels are name/value pairs that can be represented as dictionaries (name->value
 
 ## Packages
 
-The majority of packages support netstandard2.0.
+The majority of packages support net10.
 
 The following NuGet packages are provided:
 
