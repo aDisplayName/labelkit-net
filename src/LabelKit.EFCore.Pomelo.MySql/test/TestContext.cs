@@ -23,8 +23,11 @@ public class TestContext(DbDataSource dataSource, string version)
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
+    modelBuilder.ConfigureLabelKitMySql();
+
     modelBuilder.Entity<TestEntity>(entity =>
     {
+      entity.Property(e => e.ArrayLabels).HasColumnType("json");
       entity.Property(e => e.DictLabels).HasColumnType("json");
     });
   }

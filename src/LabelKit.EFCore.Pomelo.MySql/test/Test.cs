@@ -88,7 +88,7 @@ public class Test(ITestOutputHelper output) : IAsyncLifetime
   {
     await using var dbContext = new TestContext(this.dataSource, mysqlVersion);
 
-    var expressionBuilder = LabelSelectorExpressionBuilders.Collection<string[]>();
+    var expressionBuilder = MySqlLabelSelectorExpressionBuilders.Collection<string[]>();
 
     var query = dbContext.Set<TestEntity>()
       .AsNoTracking()

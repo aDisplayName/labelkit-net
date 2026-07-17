@@ -56,13 +56,17 @@ public class NpgsqlJsonbLabelSelectorExpressionBuilder<T> : ILabelSelectorExpres
         case { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }:
         {
           var name = selectorExpression.Name;
-          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(false), (current, pattern) => current.Or(e => e.ContainsKey(name) && Regex.IsMatch(e[name], pattern))));
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(false), (current, pattern) => current.Or(e =>
+            EF.Functions.JsonExists(e!, name) &&
+            Regex.IsMatch(NpgsqlLabelKitDbFunctions.JsonbGetText(e!, name)!, pattern))));
           break;
         }
         case { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }:
         {
           var name = selectorExpression.Name;
-          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, pattern) => current.And(e => !e.ContainsKey(name) || !Regex.IsMatch(e[name], pattern))));
+          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, pattern) => current.And(e =>
+            !EF.Functions.JsonExists(e!, name) ||
+            !Regex.IsMatch(NpgsqlLabelKitDbFunctions.JsonbGetText(e!, name)!, pattern))));
           break;
         }
         case { Operator: LabelSelectorOperator.Exists }:

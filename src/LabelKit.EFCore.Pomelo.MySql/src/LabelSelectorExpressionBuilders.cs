@@ -15,4 +15,13 @@ public static partial class MySqlLabelSelectorExpressionBuilders
   public static ILabelSelectorExpressionBuilder<TLabels> Json<TLabels>()
     where TLabels : IDictionary<string, string>
     => Builders<TLabels>.Json;
+
+  /// <summary>
+  /// Creates an expression builder for labels stored as JSON arrays of <c>name:value</c> strings.
+  /// </summary>
+  /// <typeparam name="TLabels">Type of labels.</typeparam>
+  /// <returns>The expression builder.</returns>
+  public static ILabelSelectorExpressionBuilder<TLabels> Collection<TLabels>()
+    where TLabels : IEnumerable<string>
+    => new MySqlCollectionLabelSelectorExpressionBuilder<TLabels>();
 }

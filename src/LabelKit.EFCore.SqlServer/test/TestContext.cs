@@ -21,6 +21,7 @@ public class TestContext(string connectionString)
   {
     modelBuilder.Entity<TestEntity>(entity =>
     {
+      entity.Property(e => e.Id).ValueGeneratedNever();
     });
   }
 }
