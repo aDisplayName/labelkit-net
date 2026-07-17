@@ -21,6 +21,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PackageIdPrefix>aDisplayName.</PackageIdPrefix>
     <LabelKitDescription>LabelKit is a .NET toolkit for parsing and using kubernetes-like label-selectors including support for EFCore.</LabelKitDescription>
   </PropertyGroup>
 

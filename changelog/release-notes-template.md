@@ -1,7 +1,0 @@
-# Version
-
-## Features
-
-## Improvements
-
-## Fixes

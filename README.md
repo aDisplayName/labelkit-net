@@ -23,15 +23,15 @@ The majority of packages support netstandard2.0.
 
 The following NuGet packages are provided:
 
-- [LabelKit](https://www.nuget.org/packages/LabelKit/)
+- [aDisplayName.LabelKit](https://www.nuget.org/packages/aDisplayName.LabelKit/)
   - You need to reference structured label-selectors.
-- [LabelKit.Parser](https://www.nuget.org/packages/LabelKit.Parser/)
+- [aDisplayName.LabelKit.Parser](https://www.nuget.org/packages/aDisplayName.LabelKit.Parser/)
   - You need to parse raw label-selectors.
-- [LabelKit.Expressions](https://www.nuget.org/packages/LabelKit.Expressions/)
+- [aDisplayName.LabelKit.Expressions](https://www.nuget.org/packages/aDisplayName.LabelKit.Expressions/)
   - You need to build expressions and filter queries. See [here](#expressions-efcore).
-- [LabelKit.EFCore.PostgreSQL](https://www.nuget.org/packages/LabelKit.EFCore.PostgreSQL/)
+- [aDisplayName.LabelKit.EFCore.PostgreSQL](https://www.nuget.org/packages/aDisplayName.LabelKit.EFCore.PostgreSQL/)
   - You need to filter EFCore-PostgreSQL queries. See [here](#expressions-efcore).
-- [LabelKit.EFCore.Pomelo.MySql](https://www.nuget.org/packages/LabelKit.EFCore.Pomelo.MySql/)
+- [aDisplayName.LabelKit.EFCore.Pomelo.MySql](https://www.nuget.org/packages/aDisplayName.LabelKit.EFCore.Pomelo.MySql/)
   - You need to filter EFCore-MySql queries. See [here](#expressions-efcore).
 
 ## Building and CI
@@ -111,7 +111,7 @@ public class Entity
 }
 ```
 
-`dotnet add package LabelKit.Parser`
+`dotnet add package aDisplayName.LabelKit.Parser`
 
 LabelKit.Parser offers a default parser built with [Pidgin](https://github.com/benjamin-hodgson/Pidgin).
 
@@ -124,7 +124,7 @@ var selector = LabelSelectorParser.Parse(
   "label1 = value, label2 = value, label3 in (value1, value2)");
 ```
 
-`dotnet add package LabelKit.EFCore.PostgreSQL`
+`dotnet add package aDisplayName.LabelKit.EFCore.PostgreSQL`
 
 ```csharp
 var expressionBuilder = NpgsqlLabelSelectorExpressionBuilders.Jsonb<Dictionary<string, string>>();
@@ -217,7 +217,7 @@ selector.ToString();
 
 You can also use label-selectors offline without any database interaction.
 
-`dotnet add package LabelKit`
+`dotnet add package aDisplayName.LabelKit`
 
 ```csharp
 var selector = LabelSelector.New()
@@ -298,7 +298,7 @@ vastly different from if they were stored as an array. Therefore, you need a dif
 - `CollectionLabelSelectorExpressionBuilder` (`LabelSelectorExpressionBuilders.Collection()`)
   - Builds generic expression suitable for any collection of strings.
   - Supported by PostgreSQL, SqlServer, Sqlite (and MySql).
-  - Available in package `LabelKit.Expressions`.
+  - Available in package `aDisplayName.LabelKit.Expressions`.
 
 > [!IMPORTANT]
 > 
@@ -308,7 +308,7 @@ vastly different from if they were stored as an array. Therefore, you need a dif
 
 ### Filter IQueryables
 
-`dotnet add package LabelKit.Expressions`
+`dotnet add package aDisplayName.LabelKit.Expressions`
 
 ```csharp
 using LabelKit;

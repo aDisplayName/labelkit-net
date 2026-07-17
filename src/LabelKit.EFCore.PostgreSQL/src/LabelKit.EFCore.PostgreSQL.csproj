@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
-    <PackageId>LabelKit.EFCore.PostgreSQL</PackageId>
+    <PackageId>$(PackageIdPrefix)LabelKit.EFCore.PostgreSQL</PackageId>
     <Description>
       EFCore-PostgreSQL components of LabelKit. $(LabelKitDescription)
     </Description>

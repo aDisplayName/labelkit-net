@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
-    <PackageId>LabelKit.EFCore.Pomelo.MySql</PackageId>
+    <PackageId>$(PackageIdPrefix)LabelKit.EFCore.Pomelo.MySql</PackageId>
     <Description>
       EFCore-MySql (Pomelo) components of LabelKit. $(LabelKitDescription)
     </Description>

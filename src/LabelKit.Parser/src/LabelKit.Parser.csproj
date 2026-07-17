@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
-    <PackageId>LabelKit.Parser</PackageId>
+    <PackageId>$(PackageIdPrefix)LabelKit.Parser</PackageId>
     <Description>
       Default parser of LabelKit. $(LabelKitDescription)
     </Description>

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>LabelKit</RootNamespace>
     <IsPackable>true</IsPackable>
-    <PackageId>LabelKit.Expressions</PackageId>
+    <PackageId>$(PackageIdPrefix)LabelKit.Expressions</PackageId>
     <Description>
       Expression components of LabelKit. $(LabelKitDescription)
     </Description>
