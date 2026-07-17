@@ -20,6 +20,8 @@ public class TestContext(DbDataSource dataSource)
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
+    modelBuilder.ConfigureLabelKitNpgsql();
+
     modelBuilder.Entity<TestEntity>(entity =>
     {
       entity.Property(e => e.DictLabels).HasColumnType("jsonb");

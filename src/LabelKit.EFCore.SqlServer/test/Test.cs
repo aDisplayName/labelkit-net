@@ -64,10 +64,6 @@ public class Test(ITestOutputHelper output) : IAsyncLifetime
 
     await using var dbContext = new TestContext(connectionString);
 
-    dbContext.AddRange(this.data);
-
-    await dbContext.SaveChangesAsync();
-
     var expressionBuilder = LabelSelectorExpressionBuilders.Collection<string[]>();
 
     var query = dbContext.Set<TestEntity>()
@@ -91,6 +87,10 @@ public class Test(ITestOutputHelper output) : IAsyncLifetime
     await using var dbContext = new TestContext(connectionString);
 
     await dbContext.Database.EnsureCreatedAsync();
+
+    dbContext.AddRange(this.data);
+
+    await dbContext.SaveChangesAsync();
   }
 
   public async Task DisposeAsync()

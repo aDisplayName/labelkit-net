@@ -55,14 +55,28 @@ public class MySqlJsonLabelSelectorExpressionBuilder<T> : ILabelSelectorExpressi
           break;
         case { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }:
         {
-          var name = selectorExpression.Name;
-          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(false), (current, pattern) => current.Or(e => e.ContainsKey(name) && Regex.IsMatch(e[name], pattern))));
+          var orExpression = PredicateBuilder.New<T>(false);
+          foreach (var pattern in selectorExpression.Values)
+          {
+            orExpression = orExpression.Or(e =>
+              EF.Functions.JsonContainsPath(e!, $"$.{selectorExpression.Name}") &&
+              Regex.IsMatch(MySqlLabelKitDbFunctions.JsonGetText(e!, $"$.{selectorExpression.Name}")!, pattern));
+          }
+
+          expression = expression.And(orExpression);
           break;
         }
         case { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }:
         {
-          var name = selectorExpression.Name;
-          expression = expression.And(selectorExpression.Values.Aggregate(PredicateBuilder.New<T>(true), (current, pattern) => current.And(e => !e.ContainsKey(name) || !Regex.IsMatch(e[name], pattern))));
+          var andExpression = PredicateBuilder.New<T>(true);
+          foreach (var pattern in selectorExpression.Values)
+          {
+            andExpression = andExpression.And(e =>
+              !EF.Functions.JsonContainsPath(e!, $"$.{selectorExpression.Name}") ||
+              !Regex.IsMatch(MySqlLabelKitDbFunctions.JsonGetText(e!, $"$.{selectorExpression.Name}")!, pattern));
+          }
+
+          expression = expression.And(andExpression);
           break;
         }
         case { Operator: LabelSelectorOperator.Exists }:
