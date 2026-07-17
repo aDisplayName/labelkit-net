@@ -2,7 +2,7 @@
 
 namespace LabelKit;
 
-using System.Text.RegularExpressions;
+using Internal;
 
 public static class LabelSelectorExtensions
 {
@@ -48,10 +48,14 @@ public static class LabelSelectorExtensions
   /// </summary>
   /// <param name="selector">The selector.</param>
   /// <param name="labels">Set of labels.</param>
+  /// <param name="options">Matching options. When null, uses <see cref="LabelSelector.MatchingOptions"/> if available, otherwise <see cref="MatchingOptions.Default"/>.</param>
   /// <remarks></remarks>
   /// <returns></returns>
-  public static bool Matches(this ILabelSelector selector, IEnumerable<KeyValuePair<string, string>> labels)
-    => selector.All(e => e.Matches(labels));
+  public static bool Matches(this ILabelSelector selector, IEnumerable<KeyValuePair<string, string>> labels, MatchingOptions? options = null)
+  {
+    var resolvedOptions = ResolveMatchingOptions(selector, options);
+    return selector.All(e => e.Matches(labels, resolvedOptions));
+  }
 
   /// <summary>
   /// Determines whether a given set of labels (represented by a collection of strings) matches the given <see cref="ILabelSelector"/>.
@@ -59,18 +63,23 @@ public static class LabelSelectorExtensions
   /// <param name="selector">The selector.</param>
   /// <param name="labels">Set of labels.</param>
   /// <param name="delimiter">Delimiter used to separate label names and values.</param>
+  /// <param name="options">Matching options. When null, uses <see cref="LabelSelector.MatchingOptions"/> if available, otherwise <see cref="MatchingOptions.Default"/>.</param>
   /// <returns></returns>
-  public static bool Matches(this ILabelSelector selector, IEnumerable<string> labels, string delimiter = ":")
-    => selector.All(e => e.Matches(labels, delimiter));
+  public static bool Matches(this ILabelSelector selector, IEnumerable<string> labels, string delimiter = ":", MatchingOptions? options = null)
+  {
+    var resolvedOptions = ResolveMatchingOptions(selector, options);
+    return selector.All(e => e.Matches(labels, delimiter, resolvedOptions));
+  }
 
   /// <summary>
   /// Determines whether a given set of labels (represented by a collection of keys and values) matches the given <see cref="LabelSelectorExpression"/>.
   /// </summary>
   /// <param name="expression">The expression.</param>
   /// <param name="labels">Set of labels.</param>
+  /// <param name="options">Matching options for Like / NotLike regular-expression evaluation.</param>
   /// <remarks></remarks>
   /// <returns></returns>
-  public static bool Matches(this LabelSelectorExpression expression, IEnumerable<KeyValuePair<string, string>> labels)
+  public static bool Matches(this LabelSelectorExpression expression, IEnumerable<KeyValuePair<string, string>> labels, MatchingOptions options)
   {
     return expression switch
     {
@@ -80,12 +89,12 @@ public static class LabelSelectorExtensions
         => expression.Values.All(v => !labels.Contains(new KeyValuePair<string, string>(expression.Name, v))),
       { Operator: LabelSelectorOperator.Like, Values.Length: > 0 }
         => labels is IDictionary<string, string> dict
-          ? dict.TryGetValue(expression.Name, out var likeValue) && expression.Values.Any(p => Regex.IsMatch(likeValue, p))
-          : labels.Where(l => l.Key == expression.Name).Select(l => l.Value).Any(value => expression.Values.Any(p => Regex.IsMatch(value, p))),
+          ? dict.TryGetValue(expression.Name, out var likeValue) && expression.Values.Any(p => RegexMatchHelper.IsMatch(likeValue, p, options))
+          : labels.Where(l => l.Key == expression.Name).Select(l => l.Value).Any(value => expression.Values.Any(p => RegexMatchHelper.IsMatch(value, p, options))),
       { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }
         => labels is IDictionary<string, string> notLikeDict
-          ? !notLikeDict.TryGetValue(expression.Name, out var notLikeValue) || expression.Values.All(p => !Regex.IsMatch(notLikeValue, p))
-          : !labels.Any(l => l.Key == expression.Name) || labels.Where(l => l.Key == expression.Name).All(l => expression.Values.All(p => !Regex.IsMatch(l.Value, p))),
+          ? !notLikeDict.TryGetValue(expression.Name, out var notLikeValue) || expression.Values.All(p => !RegexMatchHelper.IsMatch(notLikeValue, p, options))
+          : !labels.Any(l => l.Key == expression.Name) || labels.Where(l => l.Key == expression.Name).All(l => expression.Values.All(p => !RegexMatchHelper.IsMatch(l.Value, p, options))),
       { Operator: LabelSelectorOperator.Exists }
         => labels is IDictionary<string, string> dict ? dict.ContainsKey(expression.Name) : labels.Any(l => l.Key == expression.Name),
       { Operator: LabelSelectorOperator.NotExists }
@@ -100,8 +109,9 @@ public static class LabelSelectorExtensions
   /// <param name="expression">The expression.</param>
   /// <param name="labels">Set of labels.</param>
   /// <param name="delimiter">Delimiter used to separate label names and values.</param>
+  /// <param name="options">Matching options for Like / NotLike regular-expression evaluation.</param>
   /// <returns></returns>
-  public static bool Matches(this LabelSelectorExpression expression, IEnumerable<string> labels, string delimiter = ":")
+  public static bool Matches(this LabelSelectorExpression expression, IEnumerable<string> labels, string delimiter, MatchingOptions options)
   {
     return expression switch
     {
@@ -113,11 +123,11 @@ public static class LabelSelectorExtensions
         => labels
           .Where(l => l.StartsWith($"{expression.Name}{delimiter}"))
           .Select(l => l[(expression.Name.Length + delimiter.Length)..])
-          .Any(value => expression.Values.Any(p => Regex.IsMatch(value, p))),
+          .Any(value => expression.Values.Any(p => RegexMatchHelper.IsMatch(value, p, options))),
       { Operator: LabelSelectorOperator.NotLike, Values.Length: > 0 }
         => !labels.Any(l =>
           l.StartsWith($"{expression.Name}{delimiter}") &&
-          expression.Values.Any(p => Regex.IsMatch(l[(expression.Name.Length + delimiter.Length)..], p))),
+          expression.Values.Any(p => RegexMatchHelper.IsMatch(l[(expression.Name.Length + delimiter.Length)..], p, options))),
       { Operator: LabelSelectorOperator.Exists }
         => labels.Any(l => l.StartsWith(expression.Name)),
       { Operator: LabelSelectorOperator.NotExists }
@@ -142,4 +152,7 @@ public static class LabelSelectorExtensions
   /// <returns></returns>
   public static IEnumerable<string> Labels(this ILabelSelector selector)
     => selector.Select(e => e.Name).Distinct();
+
+  private static MatchingOptions ResolveMatchingOptions(ILabelSelector selector, MatchingOptions? options)
+    => options ?? (selector as LabelSelector)?.MatchingOptions ?? MatchingOptions.Default;
 }

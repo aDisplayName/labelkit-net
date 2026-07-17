@@ -204,6 +204,22 @@ Patterns use [.NET regular expression](https://learn.microsoft.com/en-us/dotnet/
 | `Like` | no match | value matches **at least one** pattern |
 | `NotLike` | match | value matches **none** of the patterns |
 
+Offline matching applies a default regular-expression timeout of **200ms**. Customize `MatchTimeout` and `RegexOptions` via `MatchingOptions`, and pass it to `Matches(...)` or `LabelSelectorParser.Parse(...)`:
+
+```csharp
+var options = new MatchingOptions
+{
+  MatchTimeout = TimeSpan.FromMilliseconds(500),
+  RegexOptions = RegexOptions.IgnoreCase
+};
+
+selector.Matches(labels, options);
+// or
+var parsed = LabelSelectorParser.Parse(raw, options);
+```
+
+Timed-out or invalid patterns are treated as a non-match: `Like` fails and `NotLike` passes.
+
 When rendered as a string:
 
 ```csharp

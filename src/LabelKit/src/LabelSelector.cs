@@ -14,6 +14,11 @@ public class LabelSelector : ILabelSelector, ICloneable, IEquatable<ILabelSelect
   /// </summary>
   public IList<LabelSelectorExpression>? Expressions { get; set; }
 
+  /// <summary>
+  /// Matching options used when evaluating this selector via <see cref="LabelSelectorExtensions.Matches(ILabelSelector, IEnumerable{KeyValuePair{string, string}}, MatchingOptions?)"/>.
+  /// </summary>
+  public MatchingOptions? MatchingOptions { get; init; }
+
   public IEnumerator<LabelSelectorExpression> GetEnumerator()
     => this.Expressions?.GetEnumerator() ?? Enumerable.Empty<LabelSelectorExpression>().GetEnumerator();
 
@@ -24,13 +29,15 @@ public class LabelSelector : ILabelSelector, ICloneable, IEquatable<ILabelSelect
   /// </summary>
   /// <param name="expressions">Source expressions.</param>
   /// <param name="copy">Whether to copy the expressions or reuse the original instances.</param>
+  /// <param name="matchingOptions">Matching options applied when evaluating this selector.</param>
   /// <returns></returns>
-  public static LabelSelector New(IEnumerable<LabelSelectorExpression>? expressions = null, bool copy = true)
+  public static LabelSelector New(IEnumerable<LabelSelectorExpression>? expressions = null, bool copy = true, MatchingOptions? matchingOptions = null)
     => new()
     {
       Expressions = copy
         ? expressions?.Select(e => (LabelSelectorExpression) e.Clone()).ToList()
-        : expressions?.ToList()
+        : expressions?.ToList(),
+      MatchingOptions = matchingOptions
     };
 
   /// <summary>
@@ -69,7 +76,7 @@ public class LabelSelector : ILabelSelector, ICloneable, IEquatable<ILabelSelect
 
   object ICloneable.Clone() => this.Clone();
 
-  public LabelSelector Clone() => New(this);
+  public LabelSelector Clone() => New(this, matchingOptions: this.MatchingOptions);
 
   /// <summary>
   /// Renders this selector.
