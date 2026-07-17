@@ -2,6 +2,7 @@
 
 namespace LabelKit.Parser.Test;
 
+using System.Text.RegularExpressions;
 using Internal;
 using Pidgin;
 using Shouldly;
@@ -156,5 +157,118 @@ public class Test
 
     compiled.Invoke(["label3:value1", "label7:value"]).ShouldBeTrue();
     compiled.Invoke(["label3:value1"]).ShouldBeFalse();
+  }
+
+  [Fact]
+  public void LikeMatchTimeoutFails()
+  {
+    var options = new MatchingOptions { MatchTimeout = TimeSpan.FromMilliseconds(50) };
+    var selector = LabelSelector.New()
+      .Match("label1").Like("(a+)+b");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = new string('a', 30)
+    };
+
+    selector.Matches(labels, options).ShouldBeFalse();
+  }
+
+  [Fact]
+  public void NotLikeMatchTimeoutPasses()
+  {
+    var options = new MatchingOptions { MatchTimeout = TimeSpan.FromMilliseconds(50) };
+    var selector = LabelSelector.New()
+      .Match("label1").NotLike("(a+)+b");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = new string('a', 30)
+    };
+
+    selector.Matches(labels, options).ShouldBeTrue();
+  }
+
+  [Fact]
+  public void LikeInvalidPatternFails()
+  {
+    var selector = LabelSelector.New()
+      .Match("label1").Like("[");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = "value"
+    };
+
+    selector.Matches(labels).ShouldBeFalse();
+  }
+
+  [Fact]
+  public void NotLikeInvalidPatternPasses()
+  {
+    var selector = LabelSelector.New()
+      .Match("label1").NotLike("[");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = "value"
+    };
+
+    selector.Matches(labels).ShouldBeTrue();
+  }
+
+  [Fact]
+  public void MatchingOptionsCustomTimeout()
+  {
+    var options = new MatchingOptions { MatchTimeout = TimeSpan.FromMilliseconds(50) };
+    var selector = LabelSelector.New()
+      .Match("label1").Like("^value$");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = "value"
+    };
+
+    selector.Matches(labels, options).ShouldBeTrue();
+  }
+
+  [Fact]
+  public void MatchingOptionsRegexOptions()
+  {
+    var options = new MatchingOptions { RegexOptions = RegexOptions.IgnoreCase };
+    var selector = LabelSelector.New()
+      .Match("label1").Like("^VALUE$");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = "value"
+    };
+
+    selector.Matches(labels).ShouldBeFalse();
+    selector.Matches(labels, options).ShouldBeTrue();
+  }
+
+  [Fact]
+  public void ParserCarriesMatchingOptions()
+  {
+    var options = new MatchingOptions
+    {
+      MatchTimeout = TimeSpan.FromMilliseconds(50),
+      RegexOptions = RegexOptions.IgnoreCase
+    };
+
+    var parsed = LabelSelectorParser.ParseOrThrow("label1 = value", options);
+
+    parsed.MatchingOptions.ShouldBeSameAs(options);
+
+    var selector = LabelSelector.New(matchingOptions: options)
+      .Match("label1").Like("^VALUE$");
+
+    var labels = new Dictionary<string, string>
+    {
+      ["label1"] = "value"
+    };
+
+    selector.Matches(labels).ShouldBeTrue();
   }
 }
