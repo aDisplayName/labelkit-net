@@ -155,8 +155,12 @@ var selector = LabelSelector.New()
   .Match("label3").In("value1", "value2")
   .Match("label4").NotIn("value1", "value2")
   .Match("label5").Exists()
-  .Match("label6").NotExists();
+  .Match("label6").NotExists()
+  .Match("label7").Like("^val.*")
+  .Match("label8").NotLike("^excl.*");
 ```
+
+
 
 They can be merged...
 
@@ -183,6 +187,32 @@ They can be rendered...
 merged.ToString();
 ```
 
+#### Regular expression matching (Like / NotLike)
+
+LabelKit extends the kubernetes label-selector syntax with `like` and `notlike` operators for regular-expression matching on label **values** (not label names).
+
+```csharp
+var selector = LabelSelector.New()
+  .Match("label1").Like("^val.*", "^value1$")   // value matches any pattern
+  .Match("label2").NotLike("^excl.*");         // value matches none of the patterns
+```
+
+Patterns use [.NET regular expression](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expressions) syntax. Multiple patterns can be passed to a single expression; they are combined with OR semantics for `Like` and AND semantics for `NotLike`:
+
+| Operator | Label absent | Label present |
+|---|---|---|
+| `Like` | no match | value matches **at least one** pattern |
+| `NotLike` | match | value matches **none** of the patterns |
+
+When rendered as a string:
+
+```csharp
+// label1 like (^val.*, ^value1$), label2 notlike (^excl.*)
+selector.ToString();
+```
+
+`Like` and `NotLike` work for offline matching (see [Matching Labels Offline](#matching-labels-offline)) and for EF Core queries across all supported providers (JSONB/JSON columns and string collections).
+
 ### Matching Labels Offline
 
 You can also use label-selectors offline without any database interaction.
@@ -197,6 +227,19 @@ var selector = LabelSelector.New()
 string[] labels = [ "label1:value", "label2:value" ];
 
 // Default delimiter is ':'
+// -> true
+var doesMatch = selector.Matches(labels);
+```
+
+Regular-expression matching works the same way offline:
+
+```csharp
+var selector = LabelSelector.New()
+  .Match("label1").Like("^val.*")
+  .Match("label2").NotLike("^excl.*");
+
+string[] labels = [ "label1:value1", "label2:other" ];
+
 // -> true
 var doesMatch = selector.Matches(labels);
 ```
